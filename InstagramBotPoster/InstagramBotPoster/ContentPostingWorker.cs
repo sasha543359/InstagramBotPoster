@@ -32,19 +32,39 @@ namespace InstagramBotPoster
                 try
                 {
                     var contentService = new ContentPostingService(profile);
-                    contentService.StartPosting();
+
+                    var videoFiles = Directory.GetFiles(profile.VideosPath, "*.mp4");
+
+                    foreach (var videoPath in videoFiles)
+                    {
+                        if (stoppingToken.IsCancellationRequested)
+                            break;
+
+                        string outputVideoPath = Path.Combine(profile.ProcessedVideosPath, Path.GetFileName(videoPath));
+
+                        _logger.LogInformation($"Обработка видео: {videoPath}");
+
+                        // Сервис обработки видео
+                        var videoService = new VideoProcessingService();
+                        await videoService.ProcessVideoAsync(videoPath, outputVideoPath);
+
+                        _logger.LogInformation($"Видео обработано и сохранено: {outputVideoPath}");
+
+                        // Публикация видео
+                        contentService.StartPosting(outputVideoPath);
+
+                        await Task.Delay(3000, stoppingToken); // Пауза между постингами
+                    }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError($"Ошибка при обработке профиля {profile.Name}: {ex.Message}");
                 }
 
-                await Task.Delay(2000, stoppingToken); // Задержка между профилями
+                await Task.Delay(2000, stoppingToken);
             }
 
             _logger.LogInformation("Все профили обработаны. Завершаем работу...");
-
-            Environment.Exit(0);
         }
     }
 }

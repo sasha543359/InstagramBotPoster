@@ -14,7 +14,7 @@ internal class ContentPostingService
         _profile = profile;
     }
 
-    public void StartPosting()
+    public void StartPosting(string filePath)
     {
         var chromeOptions = new ChromeOptions();
 
@@ -28,7 +28,7 @@ internal class ContentPostingService
         try
         {
             driver.Navigate().GoToUrl("https://www.instagram.com/");
-            PostContent(driver);
+            PostContent(driver, filePath);
         }
         catch (Exception ex)
         {
@@ -36,11 +36,9 @@ internal class ContentPostingService
         }
     }
 
-    private void PostContent(ChromeDriver driver)
+    private void PostContent(ChromeDriver driver, string filePath)
     {
         AutoItX3 autoIt = new AutoItX3();
-
-        string filePath = @"C:\Users\Computer\Desktop\start_intro_flower.jpg";
 
         try
         {
