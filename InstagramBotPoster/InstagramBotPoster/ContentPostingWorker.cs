@@ -53,7 +53,7 @@ namespace InstagramBotPoster
                         // Публикация видео
                         contentService.StartPosting(outputVideoPath);
 
-                        await Task.Delay(3000, stoppingToken); // Пауза между постингами
+                        await Task.Delay(3000, stoppingToken);
                     }
                 }
                 catch (Exception ex)
