@@ -1,5 +1,6 @@
 ﻿using AutoItX3Lib;
 using InstagramBotPoster.Models;
+using Microsoft.Extensions.Options;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
@@ -42,21 +43,37 @@ internal class ContentPostingService
 
         try
         {
+            Thread.Sleep(5000);
             driver.FindElement(By.XPath("//span[text()='Создать']")).Click();
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             driver.FindElement(By.XPath("//span[text()='Публикация']")).Click();
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             driver.FindElement(By.XPath("//button[text()='Выбрать на компьютере']")).Click();
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             autoIt.WinWait("Открытие", "", 3);
             autoIt.Send(filePath);
             Thread.Sleep(500);
             autoIt.Send("{ENTER}");
+            Thread.Sleep(2000);
 
-            Thread.Sleep(1000);
+            var popupButtons = driver.FindElements(By.XPath("//button[text()='OK']"));
+            if (popupButtons.Count > 0)
+            {
+                Console.WriteLine("Всплывающее окно найдено, нажимаем 'OK'");
+                popupButtons[0].Click();
+                Thread.Sleep(1000);
+            }
+            Thread.Sleep(2000);
+
+            driver.FindElement(By.CssSelector("svg[aria-label='Выбрать размер и обрезать']")).Click();
+            Thread.Sleep(2000);
+
+            driver.FindElement(By.XPath("//span[text()='9:16']")).Click();
+            Thread.Sleep(2000);
+
 
             driver.FindElement(By.XPath("//div[text()='Далее']")).Click();
             Thread.Sleep(1000);
@@ -64,7 +81,8 @@ internal class ContentPostingService
             driver.FindElement(By.XPath("//div[text()='Далее']")).Click();
             Thread.Sleep(1000);
 
-            // driver.FindElement(By.XPath("//div[text()='Поделиться']")).Click();
+            driver.FindElement(By.XPath("//div[text()='Поделиться']")).Click();
+            Thread.Sleep(2000);
         }
         catch (Exception ex)
         {

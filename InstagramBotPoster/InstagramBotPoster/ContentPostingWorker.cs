@@ -27,34 +27,39 @@ namespace InstagramBotPoster
                 if (stoppingToken.IsCancellationRequested)
                     break;
 
-                _logger.LogInformation($"Начинаем постинг для профиля: {profile.Name}");
+                _logger.LogInformation($"Начинаем обработку профиля: {profile.Name}");
 
                 try
                 {
-                    var contentService = new ContentPostingService(profile);
+                    // Получаем список видео в исходной папке
+                    var videoFiles = Directory.GetFiles(profile.VideosPath, "*.mp4").OrderBy(f => f).ToList();
 
-                    var videoFiles = Directory.GetFiles(profile.VideosPath, "*.mp4");
-
-                    foreach (var videoPath in videoFiles)
+                    if (!videoFiles.Any())
                     {
-                        if (stoppingToken.IsCancellationRequested)
-                            break;
-
-                        string outputVideoPath = Path.Combine(profile.ProcessedVideosPath, Path.GetFileName(videoPath));
-
-                        _logger.LogInformation($"Обработка видео: {videoPath}");
-
-                        // Сервис обработки видео
-                        var videoService = new VideoProcessingService();
-                        await videoService.ProcessVideoAsync(videoPath, outputVideoPath);
-
-                        _logger.LogInformation($"Видео обработано и сохранено: {outputVideoPath}");
-
-                        // Публикация видео
-                        contentService.StartPosting(outputVideoPath);
-
-                        await Task.Delay(3000, stoppingToken);
+                        _logger.LogInformation($"Нет видео для профиля {profile.Name}");
+                        continue;
                     }
+
+                    string videoPath = videoFiles.First();
+                    string processedVideoPath = Path.Combine(profile.ProcessedVideosPath, Path.GetFileName(videoPath));
+
+                    _logger.LogInformation($"Обработка видео: {videoPath}");
+
+                    var videoService = new VideoProcessingService();
+                    await videoService.ProcessVideoAsync(videoPath, processedVideoPath);
+
+                    _logger.LogInformation($"Видео обработано и сохранено: {processedVideoPath}");
+
+                    // Удаляем исходное видео после успешной обработки
+                    if (File.Exists(processedVideoPath))
+                    {
+                        File.Delete(videoPath);
+                        _logger.LogInformation($"Исходное видео удалено: {videoPath}");
+                    }
+
+                    // Публикация видео через ContentPostingService
+                    var contentService = new ContentPostingService(profile);
+                    contentService.StartPosting(processedVideoPath);
                 }
                 catch (Exception ex)
                 {
